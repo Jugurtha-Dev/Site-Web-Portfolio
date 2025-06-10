@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Jugurtha</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Styles globaux */
+        html {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        /* Variables CSS pour le mode clair/sombre */
+        /* Elles sont conservées car elles peuvent être utilisées par des styles inline ou des composants spécifiques */
+        :root {
+            --bg-color-light: #f8fafc; /* bg-slate-50 */
+            --text-color-light: #1e293b; /* text-slate-800 */
+            --primary-color-light: #3b82f6; /* bg-blue-500 */
+            --accent-color-light: #60a5fa; /* bg-blue-400 */
+            --card-bg-light: #ffffff; /* bg-white */
+            --border-color-light: #e2e8f0; /* border-slate-200 */
+        }
+
+        html.dark {
+            --bg-color-dark: #1e293b; /* bg-slate-800 */
+            --text-color-dark: #f8fafc; /* text-slate-50 */
+            --primary-color-dark: #60a5fa; /* bg-blue-400 */
+            --accent-color-dark: #3b82f6; /* bg-blue-500 */
+            --card-bg-dark: #334155; /* bg-slate-700 */
+            --border-color-dark: #475569; /* border-slate-600 */
+        }
+        /* Les règles 'body' et 'html.dark body' ont été supprimées ici */
+        /* car le div racine de l'application React gère déjà ces styles avec Tailwind. */
+        /* @keyframes blink est dans le composant HeroSection */
+    </style>
+</head>
+<body>
+    <div id="root"></div> <!-- Point de montage de l'application React -->
+
+    <!-- Élément caché pour forcer le CDN de Tailwind à générer les classes dark: -->
+    <div class="hidden dark:bg-slate-900 dark:text-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:bg-slate-700 dark:border-slate-700 dark:text-blue-400 dark:text-blue-500 dark:bg-blue-900 dark:text-blue-200 dark:text-gray-300 dark:hover:text-gray-100 dark:text-red-400 dark:hover:text-red-500"></div>
+
+    <!-- React et ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel pour transformer le JSX en JavaScript dans le navigateur (pour le développement) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Votre code React -->
+    <script type="text/babel">
+        // IMPORTS DES HOOKS REACT AU DÉBUT DU BLOC DE SCRIPT
+        const { useState, useEffect, useRef } = React;
+
+        // Composant pour les animations de défilement
+        const AnimatedSection = ({ children, id, className = '' }) => {
+            const sectionRef = useRef(null);
+            const [isVisible, setIsVisible] = useState(false);
+
+            useEffect(() => {
+                const observer = new IntersectionObserver(
+                    ([entry]) => {
+                        if (entry.isIntersecting) {
+                            setIsVisible(true);
+                            observer.unobserve(entry.target);
+                        }
+                    },
+                    {
+                        root: null,
+                        rootMargin: '0px',
+                        threshold: 0.1,
+                    }
+                );
+
+                if (sectionRef.current) {
+                    observer.observe(sectionRef.current);
+                }
+
+                return () => {
+                    if (sectionRef.current) {
+                        observer.unobserve(sectionRef.current);
+                    }
+                };
+            }, []);
+
+            return (
+                <section
+                    id={id}
+                    ref={sectionRef}
+                    className={`py-16 md:py-24 ${className} transition-opacity duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                >
+                    {children}
+                </section>
+            );
+        };
+
+        // Section Hero
+        function HeroSection() {
+            const [typedText, setTypedText] = useState('');
+            const phrases = ["Développeur Web", "Architecte Frontend", "Résolveur de Problèmes", "Créateur d'Expériences"];
+            const [phraseIndex, setPhraseIndex] = useState(0);
+            const [charIndex, setCharIndex] = useState(0);
+            const [isDeleting, setIsDeleting] = useState(false);
+
+            useEffect(() => {
+                const typeSpeed = 100;
+                const deleteSpeed = 50;
+                const delayBetweenPhrases = 1500;
+
+                let timeout;
+
+                const handleTyping = () => {
+                    const currentPhrase = phrases[phraseIndex];
+                    if (isDeleting) {
+                        setTypedText(currentPhrase.substring(0, charIndex - 1));
+                        setCharIndex(prev => prev - 1);
+                        if (charIndex === 0) {
+                            setIsDeleting(false);
+                            setPhraseIndex((prev) => (prev + 1) % phrases.length);
+                        }
+                    } else {
+                        setTypedText(currentPhrase.substring(0, charIndex + 1));
+                        setCharIndex(prev => prev + 1);
+                        if (charIndex === currentPhrase.length) {
+                            setIsDeleting(true);
+                        }
+                    }
+                    timeout = setTimeout(handleTyping, isDeleting ? deleteSpeed : typeSpeed);
+                };
+
+                timeout = setTimeout(handleTyping, isDeleting ? deleteSpeed : typeSpeed);
+
+                return () => clearTimeout(timeout);
+            }, [typedText, isDeleting, charIndex, phraseIndex, phrases]);
+
+            return (
+                <section id="hero" className="relative h-screen flex items-center justify-center text-center bg-gradient-to-br from-blue-600 to-purple-700 text-white overflow-hidden pt-16">
+                    <div className="absolute inset-0 bg-cover bg-center opacity-10" style={{ backgroundImage: 'url("https://www.google.com/url?sa=i&url=https%3A%2F%2Ffr.freepik.com%2Fphotos-vecteurs-libre%2Ffond-violet-bleu&psig=AOvVaw2PsEGf6eCtEvNgmLG0oitu&ust=1749154891206000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCLDlhvzL2I0DFQAAAAAdAAAAABAE")' }}></div>
+                    <div className="relative z-10 p-8 rounded-lg max-w-4xl mx-auto">
+                        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 leading-tight drop-shadow-lg">
+                            Bonjour, Je m'appelle <span className="text-yellow-300">Jugurtha</span>
+                        </h1>
+                        <p className="text-xl md:text-3xl mb-8 font-light">
+                            Je suis un <span className="font-semibold text-blue-200">{typedText}</span><span className="animate-blink">|</span>
+                        </p>
+                        <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+                            Apprenant passionné d'intelligence artificielle, je développe des projets web pour lier théorie et pratique.
+                        </p>
+                        <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                            <a href="#projects" className="bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:bg-gray-100 hover:scale-105 transform transition-all duration-300">
+                                Voir mes Projets
+                            </a>
+                            <a href="#contact" className="border-2 border-white text-white px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:bg-white hover:text-blue-600 hover:scale-105 transform transition-all duration-300">
+                                Me Contacter
+                            </a>
+                        </div>
+                    </div>
+                    <style>{`
+                        @keyframes blink {
+                            50% { opacity: 0; }
+                        }
+                        .animate-blink {
+                            animation: blink 0.7s infinite;
+                        }
+                    `}</style>
+                </section>
+            );
+        }
+
+        // Section À Propos
+        function AboutSection() {
+            return (
+                <AnimatedSection id="about" className="bg-slate-100 dark:bg-slate-800">
+                    <div className="container mx-auto px-6 max-w-5xl">
+                        <h2 className="text-4xl font-bold text-center mb-12 text-slate-800 dark:text-slate-200">À Propos de Moi</h2>
+                        <div className="flex flex-col md:flex-row items-center md:space-x-12 bg-white dark:bg-slate-700 p-8 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
+                            <div className="md:w-1/3 mb-8 md:mb-0 flex justify-center">
+                                <img src="https://placehold.co/300x300/FF5733/FFFFFF?text=Photo+de+profil" alt="Photo de profil de Jugurtha" className="w-64 h-64 object-cover rounded-full shadow-xl border-4 border-blue-400 dark:border-blue-300" />
+                            </div>
+                            <div className="md:w-2/3 text-lg leading-relaxed text-slate-700 dark:text-slate-300">
+                                <p className="mb-4">
+                                    Je suis un développeur web passionné avec [Nombre] ans d'expérience dans la conception et le développement d'applications web robustes, évolutives et centrées sur l'utilisateur. Mon parcours m'a permis de maîtriser l'écosystème frontend moderne, de la structuration sémantique avec HTML5 à la création d'interfaces dynamiques avec React et des styles réactifs avec Tailwind CSS.
+                                </p>
+                                <p className="mb-4">
+                                    J'excelle dans la transformation de concepts complexes en solutions élégantes et performantes. Je suis constamment en quête de nouvelles connaissances et technologies pour optimiser mes pratiques et livrer des produits de haute qualité.
+                                </p>
+                                <p>
+                                    Au-delà du code, je suis un fervent adepte de [Vos Hobbies/Intérêts, ex: la résolution de problèmes, l'apprentissage continu, le design UX]. Je suis toujours ouvert aux défis stimulants et aux collaborations enrichissantes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </AnimatedSection>
+            );
+        }
+
+        // Section Compétences
+        function SkillsSection() {
+            const skills = {
+                "Frontend": [
+                    { name: "HTML5", icon: "fab fa-html5", level: 95 },
+                    { name: "CSS3", icon: "fab fa-css3-alt", level: 90 },
+                    { name: "JavaScript (ES6+)", icon: "fab fa-js", level: 90 },
+                    { name: "React.js", icon: "fab fa-react", level: 88 },
+                    { name: "Next.js", icon: "fas fa-code", level: 75 },
+                    { name: "Tailwind CSS", icon: "fas fa-wind", level: 92 },
+                ],
+                "Backend & Bases de Données": [
+                    { name: "Node.js", icon: "fab fa-node-js", level: 70 },
+                    { name: "Express.js", icon: "fas fa-server", level: 65 },
+                    { name: "Firebase", icon: "fas fa-fire", level: 80 },
+                    { name: "MongoDB", icon: "fas fa-database", level: 60 },
+                ],
+                "Outils & Autres": [
+                    { name: "Git & GitHub", icon: "fab fa-github", level: 85 },
+                    { name: "VS Code", icon: "fas fa-terminal", level: 90 },
+                    { name: "Figma", icon: "fas fa-paint-brush", level: 70 },
+                    { name: "Méthodologies Agile", icon: "fas fa-users", level: 80 },
+                ]
+            };
+
+            return (
+                <AnimatedSection id="skills" className="bg-white dark:bg-slate-900">
+                    <div className="container mx-auto px-6 max-w-5xl">
+                        <h2 className="text-4xl font-bold text-center mb-12 text-slate-800 dark:text-slate-200">Mes Compétences</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {Object.entries(skills).map(([category, skillList]) => (
+                                <div key={category} className="bg-slate-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
+                                    <h3 className="text-2xl font-semibold mb-6 text-blue-600 dark:text-blue-400 text-center">{category}</h3>
+                                    <div className="space-y-6">
+                                        {skillList.map(skill => (
+                                            <div key={skill.name}>
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-lg font-medium text-slate-700 dark:text-slate-300">
+                                                        <i className={`${skill.icon} mr-2 text-blue-500 dark:text-blue-300`}></i> {skill.name}
+                                                    </span>
+                                                    <span className="text-sm text-slate-600 dark:text-slate-400">{skill.level}%</span>
+                                                </div>
+                                                <div className="w-full bg-slate-200 rounded-full h-2.5 dark:bg-slate-700">
+                                                    <div
+                                                        className="bg-blue-500 h-2.5 rounded-full transition-all duration-1000 ease-out"
+                                                        style={{ width: `${skill.level}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </AnimatedSection>
+            );
+        }
+
+        // Section Projets
+        function ProjectsSection() {
+            const projects = [
+                {
+                    id: 1,
+                    title: "Application de Gestion de Tâches Avancée",
+                    description: "Une application web full-stack pour la gestion de projets et de tâches avec authentification utilisateur, gestion des priorités, dates d'échéance et filtres.",
+                    image: "https://placehold.co/600x400/60a5fa/ffffff?text=Projet+Gestion",
+                    technologies: ["React", "Firebase", "Tailwind CSS"],
+                    liveLink: "https://example.com/gestion-taches", // EXEMPLE DE LIEN RÉEL
+                    githubLink: "https://github.com/jugurtha/gestion-taches" // EXEMPLE DE LIEN RÉEL
+                },
+                {
+                    id: 2,
+                    title: "Site E-commerce Responsif",
+                    description: "Développement d'une plateforme e-commerce moderne avec un design adaptatif, un panier d'achat fonctionnel et une intégration API de produits.",
+                    image: "https://placehold.co/600x400/3b82f6/ffffff?text=Projet+E-commerce",
+                    technologies: ["HTML5", "CSS3", "JavaScript", "API REST"],
+                    liveLink: "https://example.com/ecommerce", // EXEMPLE DE LIEN RÉEL
+                    githubLink: "https://github.com/jugurtha/ecommerce-site" // EXEMPLE DE LIEN RÉEL
+                },
+                {
+                    id: 3,
+                    title: "Portfolio Personnel Interactif",
+                    description: "Mon propre portfolio en ligne, présentant mes compétences et projets avec des animations fluides et un mode sombre/clair.",
+                    image: "https://placehold.co/600x400/1d4ed8/ffffff?text=Projet+Portfolio",
+                    technologies: ["HTML5", "CSS3", "JavaScript"],
+                    liveLink: "https://jugurtha.dev/portfolio", // EXEMPLE DE LIEN RÉEL
+                    githubLink: "https://github.com/jugurtha/personal-portfolio" // EXEMPLE DE LIEN RÉEL
+                },
+                {
+                    id: 4,
+                    title: "Jeu Web 2D (Canvas API)",
+                    description: "Un petit jeu développé en JavaScript pur utilisant l'API Canvas pour le rendu graphique et la logique de jeu.",
+                    image: "https://placehold.co/600x400/0f766e/ffffff?text=Projet+Jeu",
+                    technologies: ["JavaScript", "HTML Canvas"],
+                    liveLink: "https://example.com/jeu-canvas", // EXEMPLE DE LIEN RÉEL
+                    githubLink: "https://github.com/jugurtha/canvas-game" // EXEMPLE DE LIEN RÉEL
+                }
+            ];
+
+            return (
+                <AnimatedSection id="projects" className="bg-slate-100 dark:bg-slate-800">
+                    <div className="container mx-auto px-6 max-w-6xl">
+                        <h2 className="text-4xl font-bold text-center mb-12 text-slate-800 dark:text-slate-200">Mes Projets</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {projects.map(project => (
+                                <div key={project.id} className="bg-white dark:bg-slate-700 rounded-lg shadow-xl overflow-hidden transform hover:scale-102 transition-all duration-300 border border-slate-200 dark:border-slate-700">
+                                    <img src={project.image} alt={`Image du projet ${project.title}`} className="w-full h-52 object-cover" />
+                                    <div className="p-6">
+                                        <h3 className="text-2xl font-semibold mb-2 text-slate-800 dark:text-slate-200">{project.title}</h3>
+                                        <p className="text-slate-700 dark:text-slate-300 mb-4 text-sm">{project.description}</p>
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {project.technologies.map(tech => (
+                                                <span key={tech} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                                                    {tech}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="flex space-x-4">
+                                            <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 font-medium flex items-center">
+                                                <i className="fas fa-link mr-2"></i>Voir le Site
+                                            </a>
+                                            <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium flex items-center">
+                                                <i className="fab fa-github mr-2"></i>GitHub
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </AnimatedSection>
+            );
+        }
+
+        // Section Contact
+        function ContactSection() {
+            return (
+                <AnimatedSection id="contact" className="bg-slate-100 dark:bg-slate-800">
+                    <div className="container mx-auto px-6 max-w-2xl">
+                        <h2 className="text-4xl font-bold text-center mb-12 text-slate-800 dark:text-slate-200">Contactez-Moi</h2>
+                        <div className="bg-white dark:bg-slate-700 p-8 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
+                            <p className="text-lg text-center text-slate-700 dark:text-slate-300 mb-6">
+                                N'hésitez pas à me contacter pour toute opportunité, collaboration ou simplement pour dire bonjour !
+                            </p>
+                            <form action="mailto:votre.email@example.com" method="POST" encType="text/plain" className="space-y-6">
+                                <div>
+                                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nom Complet</label>
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        name="Nom"
+                                        required
+                                        className="w-full px-4 py-3 rounded-md border border-slate-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors duration-300"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Adresse E-mail</label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="Email"
+                                        required
+                                        className="w-full px-4 py-3 rounded-md border border-slate-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors duration-300"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Votre Message</label>
+                                    <textarea
+                                        id="message"
+                                        name="Message"
+                                        rows="5"
+                                        required
+                                        className="w-full px-4 py-3 rounded-md border border-slate-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors duration-300"
+                                    ></textarea>
+                                </div>
+                                <div className="text-center">
+                                    <button
+                                        type="submit"
+                                        className="bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
+                                    >
+                                        Envoyer le Message
+                                    </button>
+                                </div>
+                            </form>
+                            <div className="mt-8 text-center">
+                                <p className="text-slate-700 dark:text-slate-300 mb-4">Ou connectez-vous avec moi sur :</p>
+                                <div className="flex justify-center space-x-6 text-3xl">
+                                    <a href="https://www.linkedin.com/in/votre-profil-linkedin/" target="_blank" rel="noopener noreferrer" className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-500 transition-colors duration-300" aria-label="LinkedIn">
+                                        <i className="fab fa-linkedin"></i>
+                                    </a>
+                                    <a href="https://github.com/votre-nom-utilisateur-github" target="_blank" rel="noopener noreferrer" className="text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-300" aria-label="GitHub">
+                                        <i className="fab fa-github"></i>
+                                    </a>
+                                    <a href="mailto:votre.email@example.com" className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 transition-colors duration-300" aria-label="Email">
+                                        <i className="fas fa-envelope"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </AnimatedSection>
+            );
+        }
+
+        // Composant principal de l'application
+        function App() {
+            const [isDarkMode, setIsDarkMode] = useState(() => {
+                const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const savedTheme = localStorage.getItem('theme');
+                return savedTheme === 'dark' || (!savedTheme && prefersDarkMode);
+            });
+
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+            useEffect(() => {
+                // Log pour le débogage
+                console.log('Mode sombre actuel :', isDarkMode);
+                console.log('Classe "dark" sur html :', document.documentElement.classList.contains('dark'));
+
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                }
+            }, [isDarkMode]);
+
+            const toggleDarkMode = () => {
+                setIsDarkMode(prevMode => !prevMode);
+            };
+
+            const toggleMobileMenu = () => {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+            };
+
+            const closeMobileMenu = () => {
+                setIsMobileMenuOpen(false);
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 transition-colors duration-300 font-inter">
+                    <header className="bg-white dark:bg-slate-800 shadow-md fixed w-full z-50 transition-colors duration-300">
+                        <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+                            <a href="#hero" className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300">
+                                Jugurtha
+                            </a>
+                            <ul className="hidden md:flex space-x-8">
+                                <li><a href="#about" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-300">À Propos</a></li>
+                                <li><a href="#skills" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-300">Compétences</a></li>
+                                <li><a href="#projects" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-300">Projets</a></li>
+                                <li><a href="#contact" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-300">Contact</a></li>
+                            </ul>
+                            <div className="flex items-center space-x-4">
+                                <button
+                                    onClick={toggleDarkMode}
+                                    className="p-2 rounded-full shadow-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
+                                    aria-label={isDarkMode ? "Passer en mode clair" : "Passer en mode sombre"}
+                                >
+                                    <i className={`fas ${isDarkMode ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
+                                </button>
+                                <button
+                                    id="mobileMenuButton"
+                                    className="md:hidden text-slate-700 dark:text-slate-300 focus:outline-none"
+                                    onClick={toggleMobileMenu}
+                                    aria-label="Ouvrir le menu mobile"
+                                >
+                                    <i className="fas fa-bars text-2xl"></i>
+                                </button>
+                            </div>
+                        </nav>
+                        <div id="mobileMenu" className={`md:hidden bg-white dark:bg-slate-800 shadow-lg py-2 transition-colors duration-300 ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+                            <ul className="flex flex-col items-center space-y-2">
+                                <li><a href="#about" onClick={closeMobileMenu} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">À Propos</a></li>
+                                <li><a href="#skills" onClick={closeMobileMenu} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Compétences</a></li>
+                                <li><a href="#projects" onClick={closeMobileMenu} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Projets</a></li>
+                                <li><a href="#contact" onClick={closeMobileMenu} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Contact</a></li>
+                            </ul>
+                        </div>
+                    </header>
+
+                    <main>
+                        <HeroSection />
+                        <AboutSection />
+                        <SkillsSection />
+                        <ProjectsSection />
+                        <ContactSection />
+                    </main>
+
+                    <footer className="bg-slate-800 dark:bg-slate-900 text-white py-8 text-center transition-colors duration-300">
+                        <div className="container mx-auto px-6">
+                            <p>&copy; 2025 Jugurtha. Tous droits réservés.</p>
+                            <p className="mt-2">Conçu avec <i className="fas fa-heart text-red-500"></i> et <span className="font-bold">React & Tailwind CSS</span>.</p>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        // Rendu de l'application React dans le DOM
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
